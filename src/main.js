@@ -1060,8 +1060,16 @@ function registerGlobalListeners() {
         body: JSON.stringify({ email, code: verificationCode, name })
       });
 
-      const data = await response.json();
+      let data = {};
+      try {
+        data = await response.json();
+      } catch (e) {}
+
       if (response.ok && data.success) {
+        // Remove fallback note if it exists
+        const fallbackNote = document.getElementById('verification-fallback-note');
+        if (fallbackNote) fallbackNote.remove();
+
         // Prepare Verification Modal
         verificationTargetEmail.textContent = email;
         openInboxBtn.href = data.previewUrl;
@@ -1078,8 +1086,34 @@ function registerGlobalListeners() {
         throw new Error(data.error || 'Failed to dispatch confirmation email.');
       }
     } catch (err) {
-      signupError.textContent = err.message;
-      signupError.classList.remove('hidden');
+      console.warn('Mail server unavailable, using static fallback code:', verificationCode);
+      
+      // Fallback for static servers: show code directly in a message
+      verificationTargetEmail.textContent = email;
+      openInboxBtn.classList.add('hidden');
+      
+      let fallbackNote = document.getElementById('verification-fallback-note');
+      if (!fallbackNote) {
+        fallbackNote = document.createElement('p');
+        fallbackNote.id = 'verification-fallback-note';
+        fallbackNote.style.color = 'var(--text-muted)';
+        fallbackNote.style.fontSize = '12px';
+        fallbackNote.style.marginTop = '15px';
+        fallbackNote.style.textAlign = 'center';
+        fallbackNote.style.lineHeight = '1.4';
+        const modalContent = document.querySelector('#verification-modal .modal-content');
+        if (modalContent) {
+          modalContent.appendChild(fallbackNote);
+        }
+      }
+      fallbackNote.innerHTML = `Ethereal Mail is offline for static hosts.<br>Your verification code is: <strong style="color: var(--accent-color); font-size: 15px;">${verificationCode}</strong>`;
+
+      closeModal(authModal);
+      openModal(verificationModal);
+      
+      setTimeout(() => {
+        verificationDigits[0].focus();
+      }, 300);
     } finally {
       signupSubmitBtn.disabled = false;
       signupSubmitBtn.textContent = originalText;
