@@ -2090,3 +2090,91 @@ html, body {
   border-bottom: 1px solid var(--border-color);
 }
 
+/* =========================================================================
+   RESPONSIVE MOBILE STYLES (Max-Width: 768px)
+   ========================================================================= */
+@media (max-width: 768px) {
+  .sidebar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 1000;
+    width: 280px;
+    transform: translateX(0); /* Open overlay by default */
+    box-shadow: 5px 0 25px rgba(0, 0, 0, 0.5);
+  }
+  
+  .sidebar.collapsed {
+    transform: translateX(-280px); /* Fully hide when collapsed */
+    box-shadow: none;
+    position: absolute;
+  }
+  
+  .main-content {
+    width: 100%;
+    padding-left: 0 !important;
+  }
+  
+  .chat-footer {
+    padding: 8px 8px 14px 8px;
+  }
+  
+  .input-panel-container {
+    max-width: 100%;
+  }
+  
+  /* Welcome panel suggestion grid to single column */
+  .suggestions-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px;
+    width: 100%;
+  }
+  
+  .suggestion-card {
+    padding: 10px 12px;
+  }
+  
+  .welcome-screen h2 {
+    font-size: 20px;
+    margin-top: 10px;
+  }
+  
+  /* Adjust popup modals to adapt nicely */
+  .modal-content {
+    width: 92% !important;
+    max-width: 92% !important;
+    margin: 8px;
+    padding: 22px 14px !important;
+  }
+  
+  .modal-header h2 {
+    font-size: 18px;
+  }
+  
+  .messages-list {
+    padding: 10px 6px;
+  }
+  
+  .message-bubble {
+    max-width: 88%;
+    padding: 10px 12px;
+  }
+  
+  /* Custom Google oauth button adjustment */
+  .google-account-list {
+    max-height: 250px;
+  }
+
+  /* Compact verification digit blocks */
+  .verification-digits-grid {
+    gap: 4px !important;
+  }
+  
+  .verification-input-digit {
+    width: 36px !important;
+    height: 44px !important;
+    font-size: 18px !important;
+  }
+}
+

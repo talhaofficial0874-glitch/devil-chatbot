@@ -176,6 +176,11 @@ function initAppState() {
 
   // Load user's conversations
   refreshChatList();
+
+  // Auto-collapse sidebar on smaller screens
+  if (window.innerWidth < 768) {
+    sidebar.classList.add('collapsed');
+  }
 }
 
 /**
@@ -822,12 +827,22 @@ function registerGlobalListeners() {
     sidebar.classList.toggle('collapsed');
   });
 
+  // Auto-collapse sidebar on mobile when clicking chat viewport
+  document.querySelector('.chat-viewport').addEventListener('click', () => {
+    if (window.innerWidth < 768 && !sidebar.classList.contains('collapsed')) {
+      sidebar.classList.add('collapsed');
+    }
+  });
+
   // Create New Chat
   newChatBtn.addEventListener('click', () => {
     const newSession = createChat('New Conversation');
     refreshChatList();
     selectChat(newSession.id);
     messageInput.focus();
+    if (window.innerWidth < 768) {
+      sidebar.classList.add('collapsed');
+    }
   });
 
   // Suggestion Cards Clicking
@@ -909,6 +924,9 @@ function registerGlobalListeners() {
 
     // Standard Chat item click selects chat
     selectChat(chatId);
+    if (window.innerWidth < 768) {
+      sidebar.classList.add('collapsed');
+    }
   });
 
   // Settings Tabs Toggles
