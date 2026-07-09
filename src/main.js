@@ -314,6 +314,45 @@ function refreshChatList() {
   }
 }
 
+/**
+ * Resizes an image file proportionally using canvas before base64 conversion
+ */
+function resizeImage(file, maxWidth, maxHeight, callback) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      let width = img.width;
+      let height = img.height;
+
+      // Calculate proportional sizes
+      if (width > height) {
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+      } else {
+        if (height > maxHeight) {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
+        }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Compress to jpeg format at 0.8 quality
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      callback(dataUrl);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
 /* =========================================================================
    AUTHENTICATION UI LOGIC
    ========================================================================= */
@@ -708,15 +747,13 @@ imageFileInput.addEventListener('change', (e) => {
     return;
   }
 
-  const reader = new FileReader();
-  reader.onload = function(event) {
-    attachedImageBase64 = event.target.result;
+  resizeImage(file, 800, 800, (resizedBase64) => {
+    attachedImageBase64 = resizedBase64;
     attachedImagePreview.src = attachedImageBase64;
     imagePreviewBanner.classList.remove('hidden');
     toggleSendButtonState();
     messageInput.focus();
-  };
-  reader.readAsDataURL(file);
+  });
 });
 
 removeAttachmentBtn.addEventListener('click', resetAttachment);
@@ -774,6 +811,13 @@ chatForm.addEventListener('submit', async (e) => {
   // Authenticate gate for image generation
   if (requiresImageGen && !isUserLoggedIn()) {
     alert('Please log in or create an account to generate AI images!');
+    openModal(authModal);
+    return;
+  }
+
+  // Authenticate gate for image attachments
+  if (attachment && !isUserLoggedIn()) {
+    alert('Please log in or create an account to upload and analyze images!');
     openModal(authModal);
     return;
   }
@@ -1551,15 +1595,13 @@ function registerGlobalListeners() {
       const file = e.target.files[0];
       if (!file) return;
 
-      const reader = new FileReader();
-      reader.onload = function(event) {
-        signupAvatarBase64 = event.target.result;
+      resizeImage(file, 128, 128, (resizedBase64) => {
+        signupAvatarBase64 = resizedBase64;
         signupAvatarImg.src = signupAvatarBase64;
         signupAvatarImg.classList.remove('hidden');
         if (signupAvatarIcon) signupAvatarIcon.classList.add('hidden');
         if (signupAvatarRemoveBtn) signupAvatarRemoveBtn.classList.remove('hidden');
-      };
-      reader.readAsDataURL(file);
+      });
     });
   }
 
@@ -1590,13 +1632,10 @@ function registerGlobalListeners() {
       const file = e.target.files[0];
       if (!file) return;
 
-      const reader = new FileReader();
-      reader.onload = function(event) {
-        const base64 = event.target.result;
-        updateProfileAvatar(base64);
+      resizeImage(file, 128, 128, (resizedBase64) => {
+        updateProfileAvatar(resizedBase64);
         editAvatarFile.value = ''; // Reset input
-      };
-      reader.readAsDataURL(file);
+      });
     });
   }
 
