@@ -10,6 +10,7 @@ import {
   logInUser, 
   logOutUser, 
   updateProfileName,
+  updateProfileAvatar,
   logInWithGoogleMock
 } from './auth.js';
 
@@ -31,12 +32,22 @@ import {
   getApiKey 
 } from './api.js';
 
+import {
+  isRagEnabled,
+  setRagEnabled,
+  getDocuments,
+  saveDocument,
+  deleteDocument,
+  searchKnowledgeBase
+} from './rag.js';
+
 // Application State Variables
 let currentChat = null;
 let currentChatList = [];
 let attachedImageBase64 = null;
 let isImageGenMode = false;
 let isGenerating = false;
+let signupAvatarBase64 = null;
 
 // DOM Element Selectors
 const docBody = document.body;
@@ -125,6 +136,17 @@ const submitVerificationBtn = document.getElementById('submit-verification-btn')
 const verificationError = document.getElementById('verification-error');
 const verificationDigits = document.querySelectorAll('.verification-input-digit');
 
+// RAG (Knowledge Base) Settings Selectors
+const ragEnabledToggle = document.getElementById('rag-enabled-toggle');
+const ragFileInput = document.getElementById('rag-file-input');
+const ragUploadTriggerBtn = document.getElementById('rag-upload-trigger-btn');
+const ragPasteTitle = document.getElementById('rag-paste-title');
+const ragPasteContent = document.getElementById('rag-paste-content');
+const ragAddTextBtn = document.getElementById('rag-add-text-btn');
+const ragDocsCountDesc = document.getElementById('rag-docs-count-desc');
+const ragDocsListContainer = document.getElementById('rag-docs-list-container');
+const headerRagBadge = document.getElementById('header-rag-badge');
+
 /* =========================================================================
    INITIALIZATION & SETUP
    ========================================================================= */
@@ -144,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
  * Loads default theme configurations
  */
 function initTheme() {
-  const savedTheme = localStorage.getItem('devil_app_theme') || 'dark';
+  const savedTheme = localStorage.getItem('devil_app_theme') || 'light';
   docBody.classList.remove('dark-theme', 'light-theme');
   docBody.classList.add(`${savedTheme}-theme`);
   themeSelect.value = savedTheme;
@@ -180,6 +202,79 @@ function initAppState() {
   // Auto-collapse sidebar on smaller screens
   if (window.innerWidth < 768) {
     sidebar.classList.add('collapsed');
+  }
+
+  // Initialize RAG Knowledge Base
+  initRagState();
+}
+
+/**
+ * Loads default RAG configurations and active documents
+ */
+function initRagState() {
+  if (ragEnabledToggle) {
+    ragEnabledToggle.checked = isRagEnabled();
+  }
+  updateHeaderRagBadge();
+  renderRagDocumentsList();
+}
+
+/**
+ * Updates the top-nav header RAG status indicator
+ */
+function updateHeaderRagBadge() {
+  if (!headerRagBadge) return;
+  const active = isRagEnabled();
+  const label = headerRagBadge.querySelector('.badge-label');
+  
+  if (active) {
+    headerRagBadge.classList.add('active');
+    if (label) label.textContent = 'Knowledge Base Active';
+  } else {
+    headerRagBadge.classList.remove('active');
+    if (label) label.textContent = 'Knowledge Base Off';
+  }
+}
+
+/**
+ * Re-draws the list of active documents inside settings Knowledge Base pane
+ */
+function renderRagDocumentsList() {
+  if (!ragDocsListContainer || !ragDocsCountDesc) return;
+  
+  const docs = getDocuments();
+  ragDocsCountDesc.textContent = `${docs.length} document${docs.length === 1 ? '' : 's'} stored.`;
+
+  if (docs.length === 0) {
+    ragDocsListContainer.innerHTML = `
+      <div class="empty-settings-state" style="padding: 20px 0; text-align: center;">
+        <i data-lucide="database" style="opacity: 0.4; width: 24px; height: 24px; margin-bottom: 8px;"></i>
+        <p style="font-size: 12px; color: var(--text-muted);">No documents added yet.</p>
+      </div>
+    `;
+    if (window.lucide) {
+      window.lucide.createIcons();
+    }
+    return;
+  }
+
+  ragDocsListContainer.innerHTML = docs.map(doc => `
+    <div class="rag-doc-row" data-doc-id="${doc.id}">
+      <div class="rag-doc-info">
+        <i data-lucide="file-text"></i>
+        <div class="rag-doc-details">
+          <span class="rag-doc-name" title="${escapeHtml(doc.title)}">${escapeHtml(doc.title)}</span>
+          <span class="rag-doc-meta">${doc.wordCount} words • ${doc.chunkCount} chunks</span>
+        </div>
+      </div>
+      <button class="rag-doc-delete-btn" title="Delete document">
+        <i data-lucide="trash-2"></i>
+      </button>
+    </div>
+  `).join('');
+
+  if (window.lucide) {
+    window.lucide.createIcons();
   }
 }
 
@@ -223,14 +318,31 @@ function refreshChatList() {
    AUTHENTICATION UI LOGIC
    ========================================================================= */
 
+/**
+ * Resolves the appropriate avatar image path or base64 data URL
+ */
+function getUserAvatarSrc(user) {
+  if (user && user.avatar) {
+    if (user.avatar.startsWith('data:image/') || user.avatar.startsWith('http') || user.avatar.startsWith('https://')) {
+      return user.avatar;
+    }
+    // Fallback seed
+    return `https://api.dicebear.com/7.x/bottts/svg?seed=${user.avatar}`;
+  }
+  // Default fallback avatar: guest profile image
+  return 'https://api.dicebear.com/7.x/bottts/svg?seed=guest';
+}
+
 function updateAuthUI() {
   const loggedIn = isUserLoggedIn();
   const user = getCurrentUser();
 
   if (loggedIn && user) {
+    const avatarSrc = getUserAvatarSrc(user);
+    
     // Update Sidebar footer profile card
     profileCard.classList.remove('guest-mode');
-    profileCard.querySelector('.avatar-placeholder').innerHTML = `<img src="https://api.dicebear.com/7.x/bottts/svg?seed=${user.avatar}" class="avatar-img" alt="Avatar">`;
+    profileCard.querySelector('.avatar-placeholder').innerHTML = `<img src="${avatarSrc}" class="avatar-img" alt="Avatar">`;
     profileCard.querySelector('.profile-name').textContent = user.name;
     profileCard.querySelector('.profile-status').textContent = 'Full Premium Access';
     authTriggerBtn.innerHTML = `<i data-lucide="log-out"></i>`;
@@ -239,7 +351,7 @@ function updateAuthUI() {
     // Top nav profile details
     guestWarningBadge.classList.add('hidden');
     userAvatarIndicator.classList.remove('hidden');
-    headerAvatar.src = `https://api.dicebear.com/7.x/bottts/svg?seed=${user.avatar}`;
+    headerAvatar.src = avatarSrc;
 
     // Enable/Unlock premium attachments and graphics features
     attachBtn.classList.remove('disabled');
@@ -251,7 +363,7 @@ function updateAuthUI() {
     // Update settings account pane details
     settingsProfileLoggedIn.classList.remove('hidden');
     settingsProfileGuest.classList.add('hidden');
-    metaAvatarDisplay.innerHTML = `<img src="https://api.dicebear.com/7.x/bottts/svg?seed=${user.avatar}" alt="Avatar">`;
+    metaAvatarDisplay.innerHTML = `<img src="${avatarSrc}" alt="Avatar">`;
     metaNameDisplay.textContent = user.name;
     metaEmailDisplay.textContent = user.email;
     editDisplayName.value = user.name;
@@ -398,7 +510,8 @@ function renderChatMessages() {
   currentChat.messages.forEach(msg => {
     appendMessageDOM(msg.role, msg.content, {
       image: msg.image,
-      isGeneratedImage: msg.isGeneratedImage
+      isGeneratedImage: msg.isGeneratedImage,
+      ragSources: msg.ragSources
     });
   });
 
@@ -406,10 +519,47 @@ function renderChatMessages() {
 }
 
 /**
+ * Helper to construct accordion HTML for RAG source citations
+ */
+function createRagSourcesHTML(ragSources) {
+  if (!ragSources || ragSources.length === 0) return '';
+
+  const sourcesCount = ragSources.length;
+  const sourcesText = `${sourcesCount} source${sourcesCount === 1 ? '' : 's'}`;
+
+  const sourceItemsHTML = ragSources.map(src => `
+    <div class="rag-source-item">
+      <div class="rag-source-item-meta">
+        <i data-lucide="file-text" style="width: 12px; height: 12px; color: var(--accent-color);"></i>
+        <span>${escapeHtml(src.title)} (Passage ${src.chunkIndex})</span>
+      </div>
+      <div class="rag-source-item-text">
+        "${escapeHtml(src.text)}"
+      </div>
+    </div>
+  `).join('');
+
+  return `
+    <div class="rag-sources-wrapper">
+      <div class="rag-sources-header">
+        <div class="rag-sources-title">
+          <i data-lucide="database"></i>
+          <span>Retrieved Context (${sourcesText})</span>
+        </div>
+        <i data-lucide="chevron-down" class="rag-sources-chevron"></i>
+      </div>
+      <div class="rag-sources-content">
+        ${sourceItemsHTML}
+      </div>
+    </div>
+  `;
+}
+
+/**
  * Injects a message item inside the messagesList element
  */
 function appendMessageDOM(role, content, options = {}) {
-  const { image, isGeneratedImage, isLoading = false, tempId = null } = options;
+  const { image, isGeneratedImage, isLoading = false, tempId = null, ragSources = null } = options;
   const isUser = role === 'user';
   
   const user = getCurrentUser();
@@ -422,7 +572,7 @@ function appendMessageDOM(role, content, options = {}) {
   let avatarHTML = '';
   if (isUser) {
     if (user) {
-      avatarHTML = `<img src="https://api.dicebear.com/7.x/bottts/svg?seed=${user.avatar}" class="avatar-img" alt="User">`;
+      avatarHTML = `<img src="${getUserAvatarSrc(user)}" class="avatar-img" alt="User">`;
     } else {
       avatarHTML = `<i data-lucide="user"></i>`;
     }
@@ -488,6 +638,13 @@ function appendMessageDOM(role, content, options = {}) {
       imgEl.src = image;
       imgEl.alt = "Uploaded image";
       contentEl.appendChild(imgEl);
+    }
+
+    // Add RAG citations
+    if (ragSources && ragSources.length > 0) {
+      const sourcesDiv = document.createElement('div');
+      sourcesDiv.innerHTML = createRagSourcesHTML(ragSources);
+      contentEl.appendChild(sourcesDiv.firstElementChild);
     }
   }
 
@@ -748,6 +905,30 @@ async function handleGroqChatCompletion(elementId) {
   }
 
   const systemPrompt = systemPromptInput.value.trim() || 'You are Devil, a helpful AI assistant.';
+  
+  // Search local knowledge base if RAG is enabled
+  let finalSystemPrompt = systemPrompt;
+  let matchedSources = [];
+  const queryText = lastUserMsg ? lastUserMsg.content : '';
+
+  if (isRagEnabled() && queryText && (!lastUserMsg || !lastUserMsg.image)) {
+    const matches = searchKnowledgeBase(queryText, 3);
+    if (matches.length > 0) {
+      matchedSources = matches.map(m => ({
+        title: m.sourceTitle,
+        chunkIndex: m.chunkIndex,
+        text: m.text
+      }));
+
+      let ragContextText = "\n\n[CONTEXT FROM USER KNOWLEDGE BASE]:\n";
+      matches.forEach(m => {
+        ragContextText += `\nSource: ${m.sourceTitle} (Passage ${m.chunkIndex})\nContext:\n${m.text}\n---\n`;
+      });
+      ragContextText += "\nInstructions: Use the above context to answer the query as accurately as possible. Cite the source title in your response if helpful. If the answer cannot be found in the context, answer using your general knowledge but mention that it was not explicitly found in the Knowledge Base.\n";
+
+      finalSystemPrompt = `${systemPrompt}\n${ragContextText}`;
+    }
+  }
 
   const placeholderEl = document.getElementById(elementId);
   let contentContainer = null;
@@ -760,7 +941,7 @@ async function handleGroqChatCompletion(elementId) {
 
   await streamChatCompletions(payloadMessages, {
     model: selectedModel,
-    systemPrompt: systemPrompt,
+    systemPrompt: finalSystemPrompt,
     onChunk: (chunk, cumulText) => {
       finalMarkdown = cumulText;
       if (contentContainer) {
@@ -775,6 +956,9 @@ async function handleGroqChatCompletion(elementId) {
         role: 'assistant',
         content: completedText
       };
+      if (matchedSources.length > 0) {
+        botMessage.ragSources = matchedSources;
+      }
       currentChat.messages.push(botMessage);
       updateChatMessages(currentChat.id, currentChat.messages);
       
@@ -782,6 +966,13 @@ async function handleGroqChatCompletion(elementId) {
       if (contentContainer) {
         contentContainer.innerHTML = renderMarkdown(completedText);
         bindCodeCopyButtons(contentContainer);
+        
+        // Add RAG citations visually
+        if (matchedSources.length > 0) {
+          const sourcesDiv = document.createElement('div');
+          sourcesDiv.innerHTML = createRagSourcesHTML(matchedSources);
+          contentContainer.appendChild(sourcesDiv.firstElementChild);
+        }
       }
       if (window.lucide) {
         window.lucide.createIcons();
@@ -992,6 +1183,17 @@ function registerGlobalListeners() {
       e.preventDefault();
       const url = dlBtn.getAttribute('data-url');
       downloadImageFile(url);
+      return;
+    }
+
+    // RAG sources accordion header click delegation
+    const sourcesHeader = e.target.closest('.rag-sources-header');
+    if (sourcesHeader) {
+      const wrapper = sourcesHeader.closest('.rag-sources-wrapper');
+      if (wrapper) {
+        wrapper.classList.toggle('expanded');
+      }
+      return;
     }
   });
 
@@ -1053,7 +1255,7 @@ function registerGlobalListeners() {
     const name = document.getElementById('signup-name').value;
     const email = document.getElementById('signup-email').value;
     const pass = document.getElementById('signup-password').value;
-    const avatar = document.querySelector('input[name="avatar"]:checked').value;
+    const avatar = signupAvatarBase64;
 
     // Validate email pattern
     if (!email.includes('@') || !email.includes('.')) {
@@ -1257,6 +1459,154 @@ function registerGlobalListeners() {
     logInWithGoogleMock(name, email);
     closeModal(googleChooserModal);
   });
+
+  // RAG Enable/Disable Toggle
+  if (ragEnabledToggle) {
+    ragEnabledToggle.addEventListener('change', (e) => {
+      setRagEnabled(e.target.checked);
+      updateHeaderRagBadge();
+    });
+  }
+
+  // RAG File Upload Select
+  if (ragUploadTriggerBtn && ragFileInput) {
+    ragUploadTriggerBtn.addEventListener('click', () => {
+      ragFileInput.click();
+    });
+
+    ragFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const content = event.target.result;
+        try {
+          saveDocument(file.name, content);
+          renderRagDocumentsList();
+          ragFileInput.value = ''; // Reset file input
+        } catch (err) {
+          alert(err.message);
+        }
+      };
+      reader.readAsText(file);
+    });
+  }
+
+  // RAG Manual Text Add
+  if (ragAddTextBtn && ragPasteTitle && ragPasteContent) {
+    ragAddTextBtn.addEventListener('click', () => {
+      const title = ragPasteTitle.value.trim();
+      const content = ragPasteContent.value.trim();
+
+      if (!content) {
+        alert('Please enter document content details.');
+        return;
+      }
+
+      try {
+        saveDocument(title, content);
+        renderRagDocumentsList();
+        // Clear inputs
+        ragPasteTitle.value = '';
+        ragPasteContent.value = '';
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+  }
+
+  // RAG Document Delete Click Delegation
+  if (ragDocsListContainer) {
+    ragDocsListContainer.addEventListener('click', (e) => {
+      const deleteBtn = e.target.closest('.rag-doc-delete-btn');
+      if (!deleteBtn) return;
+
+      const row = deleteBtn.closest('.rag-doc-row');
+      if (!row) return;
+
+      const docId = row.getAttribute('data-doc-id');
+      const docName = row.querySelector('.rag-doc-name').textContent;
+
+      if (confirm(`Are you sure you want to delete "${docName}" from the Knowledge Base?`)) {
+        deleteDocument(docId);
+        renderRagDocumentsList();
+      }
+    });
+  }
+
+  // Custom Profile Picture Uploader for Sign Up Form
+  const signupAvatarFile = document.getElementById('signup-avatar-file');
+  const signupAvatarUploadBtn = document.getElementById('signup-avatar-upload-btn');
+  const signupAvatarRemoveBtn = document.getElementById('signup-avatar-remove-btn');
+  const signupAvatarIcon = document.getElementById('signup-avatar-icon');
+  const signupAvatarImg = document.getElementById('signup-avatar-img');
+
+  if (signupAvatarUploadBtn && signupAvatarFile) {
+    signupAvatarUploadBtn.addEventListener('click', () => {
+      signupAvatarFile.click();
+    });
+
+    signupAvatarFile.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        signupAvatarBase64 = event.target.result;
+        signupAvatarImg.src = signupAvatarBase64;
+        signupAvatarImg.classList.remove('hidden');
+        if (signupAvatarIcon) signupAvatarIcon.classList.add('hidden');
+        if (signupAvatarRemoveBtn) signupAvatarRemoveBtn.classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  if (signupAvatarRemoveBtn) {
+    signupAvatarRemoveBtn.addEventListener('click', () => {
+      signupAvatarBase64 = null;
+      if (signupAvatarFile) signupAvatarFile.value = '';
+      if (signupAvatarImg) {
+        signupAvatarImg.src = '';
+        signupAvatarImg.classList.add('hidden');
+      }
+      if (signupAvatarIcon) signupAvatarIcon.classList.remove('hidden');
+      signupAvatarRemoveBtn.classList.add('hidden');
+    });
+  }
+
+  // Custom Profile Picture Uploader for Settings Edit
+  const editAvatarFile = document.getElementById('edit-avatar-file');
+  const editAvatarUploadBtn = document.getElementById('edit-avatar-upload-btn');
+  const editAvatarRemoveBtn = document.getElementById('edit-avatar-remove-btn');
+
+  if (editAvatarUploadBtn && editAvatarFile) {
+    editAvatarUploadBtn.addEventListener('click', () => {
+      editAvatarFile.click();
+    });
+
+    editAvatarFile.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const base64 = event.target.result;
+        updateProfileAvatar(base64);
+        editAvatarFile.value = ''; // Reset input
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  if (editAvatarRemoveBtn) {
+    editAvatarRemoveBtn.addEventListener('click', () => {
+      if (confirm('Are you sure you want to remove your profile picture?')) {
+        updateProfileAvatar(null); // Set default avatar
+      }
+    });
+  }
 
   // Escape key hides modals
   window.addEventListener('keydown', (e) => {

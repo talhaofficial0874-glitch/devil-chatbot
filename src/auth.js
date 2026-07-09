@@ -162,6 +162,28 @@ export function updateProfileName(newName) {
 }
 
 /**
+ * Updates profile avatar base64
+ */
+export function updateProfileAvatar(newAvatar) {
+  const currentUser = getCurrentUser();
+  if (!currentUser) return null;
+
+  currentUser.avatar = newAvatar;
+  localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(currentUser));
+
+  // Sync users database
+  const users = getRegisteredUsers();
+  const index = users.findIndex(u => u.id === currentUser.id);
+  if (index !== -1) {
+    users[index].avatar = newAvatar;
+    saveRegisteredUsers(users);
+  }
+
+  notifyStateChange();
+  return currentUser;
+}
+
+/**
  * Dispatches a global event informing components about login state updates
  */
 function notifyStateChange() {

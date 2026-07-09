@@ -25,7 +25,7 @@
   <!-- Local Custom Styles -->
   <link rel="stylesheet" href="/src/style.css">
 </head>
-<body class="dark-theme">
+<body class="light-theme">
   <div class="app-layout">
     
     <!-- Sidebar Panel -->
@@ -95,6 +95,10 @@
         </div>
         
         <div class="right-nav">
+          <div class="rag-status-indicator-badge" id="header-rag-badge">
+            <span class="pulse-dot"></span>
+            <span class="badge-label">Knowledge Base Off</span>
+          </div>
           <div class="guest-warning-badge" id="guest-warning-badge">
             <i data-lucide="shield-alert"></i>
             <span>Login to unlock Images & Vision</span>
@@ -270,28 +274,22 @@
             <input type="password" id="signup-password" minlength="6" required placeholder="Min 6 characters">
           </div>
           <div class="form-group">
-            <label for="signup-avatar">Select Avatar</label>
-            <div class="avatar-selector">
-              <label class="avatar-option">
-                <input type="radio" name="avatar" value="skull" checked>
-                <span class="avatar-preview"><i data-lucide="skull"></i></span>
-              </label>
-              <label class="avatar-option">
-                <input type="radio" name="avatar" value="shield">
-                <span class="avatar-preview"><i data-lucide="shield"></i></span>
-              </label>
-              <label class="avatar-option">
-                <input type="radio" name="avatar" value="flame">
-                <span class="avatar-preview"><i data-lucide="flame"></i></span>
-              </label>
-              <label class="avatar-option">
-                <input type="radio" name="avatar" value="crown">
-                <span class="avatar-preview"><i data-lucide="crown"></i></span>
-              </label>
-              <label class="avatar-option">
-                <input type="radio" name="avatar" value="zap">
-                <span class="avatar-preview"><i data-lucide="zap"></i></span>
-              </label>
+            <label>Profile Picture</label>
+            <div class="custom-avatar-uploader-container" style="display: flex; align-items: center; gap: 16px; margin-top: 4px;">
+              <div class="custom-avatar-preview-wrapper" id="signup-avatar-preview-wrapper" style="width: 56px; height: 56px; border-radius: 50%; background-color: var(--bg-primary); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; position: relative;">
+                <i data-lucide="user" class="avatar-preview-icon" id="signup-avatar-icon" style="width: 24px; height: 24px; color: var(--text-secondary);"></i>
+                <img src="" alt="Profile Preview" class="avatar-preview-img hidden" id="signup-avatar-img" style="width: 100%; height: 100%; object-fit: cover;">
+              </div>
+              <div class="custom-avatar-upload-actions" style="display: flex; align-items: center; gap: 8px;">
+                <input type="file" id="signup-avatar-file" accept="image/*" class="hidden">
+                <button type="button" class="footer-btn" id="signup-avatar-upload-btn" style="padding: 8px 12px; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                  <i data-lucide="upload" style="width: 14px; height: 14px;"></i>
+                  <span>Upload Photo</span>
+                </button>
+                <button type="button" class="danger-action-btn hidden" id="signup-avatar-remove-btn" style="padding: 8px 12px; font-size: 12px;">
+                  <span>Remove</span>
+                </button>
+              </div>
             </div>
           </div>
           <div class="auth-error-msg hidden" id="signup-error"></div>
@@ -336,6 +334,7 @@
           <button class="settings-tab-btn active" data-tab="general">General</button>
           <button class="settings-tab-btn" data-tab="model">Model Config</button>
           <button class="settings-tab-btn" data-tab="profile">Account</button>
+          <button class="settings-tab-btn" data-tab="rag">Knowledge Base</button>
         </div>
         
         <div class="settings-content">
@@ -417,11 +416,25 @@
               </div>
               
               <div class="profile-form-edit">
-                <div class="form-group">
+                <div class="form-group" style="margin-bottom: 16px;">
                   <label for="edit-display-name">Change Display Name</label>
                   <div class="input-action-group">
                     <input type="text" id="edit-display-name" class="custom-input">
                     <button class="primary-btn" id="save-profile-name-btn">Save</button>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Change Profile Picture</label>
+                  <div style="display: flex; align-items: center; gap: 12px; margin-top: 4px;">
+                    <input type="file" id="edit-avatar-file" accept="image/*" class="hidden">
+                    <button type="button" class="footer-btn" id="edit-avatar-upload-btn" style="padding: 8px 12px; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                      <i data-lucide="upload" style="width: 14px; height: 14px;"></i>
+                      <span>Upload New Photo</span>
+                    </button>
+                    <button type="button" class="danger-action-btn" id="edit-avatar-remove-btn" style="padding: 8px 12px; font-size: 12px;">
+                      <span>Remove Photo</span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -438,6 +451,70 @@
               <i data-lucide="shield-alert"></i>
               <p>You are using Devil in Guest Mode.</p>
               <button class="primary-btn" id="settings-login-trigger">Create Account / Log In</button>
+            </div>
+          </div>
+
+          <!-- RAG / Knowledge Base Pane -->
+          <div class="settings-pane" id="pane-rag">
+            <div class="setting-item">
+              <div class="setting-info">
+                <span class="setting-title">Enable Knowledge Base (RAG)</span>
+                <span class="setting-desc">Enhance chatbot replies using your uploaded documents.</span>
+              </div>
+              <div class="setting-control">
+                <label class="switch-container">
+                  <input type="checkbox" id="rag-enabled-toggle">
+                  <span class="switch-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-item flex-column align-stretch">
+              <div class="setting-info" style="margin-bottom: 12px; width: 100%;">
+                <span class="setting-title">Add Document to Knowledge Base</span>
+                <span class="setting-desc">Upload a text-based file or copy-paste text below.</span>
+              </div>
+              
+              <div class="rag-add-wrapper" style="width: 100%;">
+                <!-- File upload button (hidden input) -->
+                <div class="rag-upload-section" style="margin-bottom: 12px;">
+                  <input type="file" id="rag-file-input" accept=".txt,.md,.csv,.json" class="hidden">
+                  <button type="button" class="footer-btn" id="rag-upload-trigger-btn" style="width: 100%; border-style: dashed; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <i data-lucide="upload-cloud" style="color: var(--accent-color); width: 16px; height: 16px;"></i>
+                    <span>Upload .txt, .md, .csv, .json</span>
+                  </button>
+                </div>
+                
+                <div class="rag-divider-text" style="display: flex; align-items: center; text-align: center; color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin: 12px 0;">
+                  <span style="flex-grow: 1; border-bottom: 1px solid var(--border-color); margin-right: 10px;"></span>
+                  <span>or paste custom text</span>
+                  <span style="flex-grow: 1; border-bottom: 1px solid var(--border-color); margin-left: 10px;"></span>
+                </div>
+                
+                <div class="rag-paste-section">
+                  <input type="text" id="rag-paste-title" class="custom-input" placeholder="Document Title (e.g. My Notes)" style="width: 100%; margin-bottom: 8px;">
+                  <textarea id="rag-paste-content" class="custom-textarea" rows="3" placeholder="Paste custom documentation or instructions here..." style="width: 100%; margin-bottom: 8px; font-family: var(--font-sans);"></textarea>
+                  <button type="button" class="primary-btn" id="rag-add-text-btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; background-color: var(--accent-color); color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; box-shadow: var(--accent-glow);">
+                    <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+                    <span>Add Text Document</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="setting-item flex-column align-stretch">
+              <div class="setting-info" style="margin-bottom: 12px; width: 100%;">
+                <span class="setting-title">Uploaded Knowledge Base</span>
+                <span class="setting-desc" id="rag-docs-count-desc">0 documents stored.</span>
+              </div>
+              
+              <div class="rag-docs-list-container" id="rag-docs-list-container" style="width: 100%;">
+                <!-- Dynamically populated document rows -->
+                <div class="empty-settings-state" style="padding: 20px 0; text-align: center;">
+                  <i data-lucide="database" style="opacity: 0.4; width: 24px; height: 24px; margin-bottom: 8px;"></i>
+                  <p style="font-size: 12px; color: var(--text-muted);">No documents added yet.</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
