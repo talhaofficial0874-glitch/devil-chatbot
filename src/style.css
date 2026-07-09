@@ -16,74 +16,74 @@
 
 /* Dark Theme Variables (Default) */
 .dark-theme {
-  --bg-primary: #050508;       /* Deep obsidian black */
-  --bg-secondary: rgba(13, 13, 17, 0.65); /* Transparent for glassmorphism */
-  --bg-tertiary: rgba(22, 22, 28, 0.8);
-  --bg-card: rgba(30, 30, 38, 0.5);
-  --border-color: rgba(255, 255, 255, 0.08); /* Slim border white */
-  --border-light: rgba(255, 255, 255, 0.12);
+  --bg-primary: #07070a;       /* Deep obsidian Indigo-black */
+  --bg-secondary: rgba(13, 13, 20, 0.65); /* Transparent for glassmorphism */
+  --bg-tertiary: rgba(22, 22, 34, 0.8);
+  --bg-card: rgba(30, 30, 46, 0.5);
+  --border-color: rgba(255, 255, 255, 0.07);
+  --border-light: rgba(255, 255, 255, 0.1);
   
   --text-primary: #f8fafc;     /* Slate 50 */
   --text-secondary: #cbd5e1;   /* Slate 300 */
   --text-muted: #64748b;       /* Slate 500 */
   
-  /* Brand Crimson & Gold Glow */
-  --accent-color: #ff3355;     /* Glowing Crimson */
-  --accent-hover: #ff0033;
-  --accent-light: rgba(255, 51, 85, 0.12);
-  --accent-glow: 0 0 20px rgba(255, 51, 85, 0.35);
-  --accent-gradient: linear-gradient(135deg, #ff3355 0%, #e11d48 100%);
+  /* Brand Indigo & Gold Glow */
+  --accent-color: #818cf8;     /* Glowing Indigo */
+  --accent-hover: #6366f1;
+  --accent-light: rgba(129, 140, 248, 0.12);
+  --accent-glow: 0 0 20px rgba(129, 140, 248, 0.35);
+  --accent-gradient: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
   
-  --gold-accent: #f59e0b;      /* Amber 500 */
-  --gold-glow: 0 0 15px rgba(245, 158, 11, 0.25);
-  --emerald-accent: #10b981;   /* Emerald 500 */
-  --emerald-glow: 0 0 15px rgba(16, 185, 129, 0.4);
+  --gold-accent: #fbbf24;      /* Amber 400 */
+  --gold-glow: 0 0 15px rgba(251, 191, 36, 0.25);
+  --emerald-accent: #34d399;   /* Emerald 400 */
+  --emerald-glow: 0 0 15px rgba(52, 211, 153, 0.4);
   
-  --glass-bg: rgba(13, 13, 17, 0.65);
+  --glass-bg: rgba(13, 13, 20, 0.65);
   --glass-blur: blur(20px) saturate(180%);
   
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 8px 16px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 16px 32px rgba(0, 0, 0, 0.5);
   
-  --scrollbar-track: #050508;
-  --scrollbar-thumb: rgba(255, 255, 255, 0.1);
+  --scrollbar-track: #07070a;
+  --scrollbar-thumb: rgba(255, 255, 255, 0.08);
 }
 
 /* Light Theme Variables */
 .light-theme {
   --bg-primary: #f8fafc;       /* Slate 50 */
-  --bg-secondary: rgba(255, 255, 255, 0.7);
-  --bg-tertiary: rgba(241, 245, 249, 0.85);
+  --bg-secondary: rgba(255, 255, 255, 0.65);
+  --bg-tertiary: rgba(241, 245, 249, 0.8);
   --bg-card: rgba(255, 255, 255, 0.9);
-  --border-color: rgba(0, 0, 0, 0.08);
-  --border-light: rgba(0, 0, 0, 0.12);
+  --border-color: rgba(99, 102, 241, 0.08);
+  --border-light: rgba(99, 102, 241, 0.12);
   
   --text-primary: #0f172a;     /* Slate 900 */
   --text-secondary: #334155;   /* Slate 700 */
   --text-muted: #64748b;       /* Slate 500 */
   
-  /* Brand Crimson Accent */
-  --accent-color: #e11d48;     /* Crimson */
-  --accent-hover: #be123c;
-  --accent-light: rgba(225, 29, 72, 0.08);
-  --accent-glow: 0 0 15px rgba(225, 29, 72, 0.2);
-  --accent-gradient: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+  /* Brand Indigo Accent */
+  --accent-color: #6366f1;     /* Indigo 500 */
+  --accent-hover: #4f46e5;
+  --accent-light: rgba(99, 102, 241, 0.06);
+  --accent-glow: 0 0 15px rgba(99, 102, 241, 0.18);
+  --accent-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
   
   --gold-accent: #d97706;
   --gold-glow: 0 0 12px rgba(217, 119, 6, 0.15);
-  --emerald-accent: #059669;
-  --emerald-glow: 0 0 12px rgba(5, 150, 105, 0.25);
+  --emerald-accent: #10b981;
+  --emerald-glow: 0 0 12px rgba(16, 185, 129, 0.25);
   
-  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-bg: rgba(255, 255, 255, 0.65);
   --glass-blur: blur(20px) saturate(180%);
   
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 8px 16px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 16px 32px rgba(0, 0, 0, 0.08);
+  --shadow-sm: 0 2px 4px rgba(99, 102, 241, 0.02);
+  --shadow-md: 0 8px 16px rgba(99, 102, 241, 0.04);
+  --shadow-lg: 0 16px 32px rgba(99, 102, 241, 0.06);
   
   --scrollbar-track: #f1f5f9;
-  --scrollbar-thumb: rgba(0, 0, 0, 0.15);
+  --scrollbar-thumb: rgba(99, 102, 241, 0.15);
 }
 
 /* Reset and Global Styles */
@@ -98,10 +98,12 @@ html, body {
   width: 100%;
   height: 100%;
   font-family: var(--font-sans);
-  background-color: var(--bg-primary);
+  background: radial-gradient(at top right, rgba(99, 102, 241, 0.05), transparent 50%), 
+              radial-gradient(at bottom left, rgba(236, 72, 153, 0.03), transparent 50%), 
+              var(--bg-primary);
   color: var(--text-primary);
   overflow: hidden;
-  transition: background-color var(--transition-normal), color var(--transition-normal);
+  transition: background var(--transition-normal), background-color var(--transition-normal), color var(--transition-normal);
 }
 
 /* Layout Framework */
@@ -174,30 +176,30 @@ html, body {
 .new-chat-btn {
   width: 100%;
   padding: 12px 16px;
-  background-color: var(--bg-primary);
-  border: 1px solid var(--border-color);
+  background: var(--accent-gradient);
+  border: none;
   border-radius: 8px;
-  color: var(--text-primary);
+  color: #ffffff;
   font-family: var(--font-sans);
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 12px;
-  transition: all var(--transition-fast);
+  transition: all var(--transition-normal);
+  box-shadow: var(--accent-glow);
 }
 
 .new-chat-btn:hover {
-  background-color: var(--bg-tertiary);
-  border-color: var(--accent-color);
-  box-shadow: var(--accent-glow);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
 }
 
 .new-chat-btn i {
   width: 16px;
   height: 16px;
-  color: var(--text-secondary);
+  color: #ffffff;
 }
 
 /* History List Area */
@@ -636,11 +638,13 @@ html, body {
   padding: 16px;
   border-radius: 12px;
   background-color: var(--bg-secondary);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--border-color);
   text-align: left;
   cursor: pointer;
   position: relative;
-  transition: all var(--transition-fast);
+  transition: all var(--transition-normal);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -649,7 +653,8 @@ html, body {
 .suggestion-card:hover {
   background-color: var(--bg-tertiary);
   border-color: var(--accent-color);
-  box-shadow: var(--accent-glow);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.12);
+  transform: translateY(-2px);
 }
 
 .suggestion-card h3 {
@@ -767,10 +772,11 @@ html, body {
 }
 
 .message-wrapper.user .message-content {
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  background-color: var(--accent-light);
+  border: 1px solid var(--border-light);
   color: var(--text-primary);
-  border-top-right-radius: 2px;
+  border-top-right-radius: 4px;
+  box-shadow: var(--shadow-sm);
 }
 
 .message-wrapper.assistant .message-content {
@@ -888,8 +894,10 @@ html, body {
   max-width: 760px;
   margin: 0 auto;
   background-color: var(--bg-secondary);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--border-color);
-  border-radius: 16px;
+  border-radius: 24px;
   box-shadow: var(--shadow-lg);
   overflow: hidden;
   transition: all var(--transition-normal);
@@ -898,6 +906,7 @@ html, body {
 .input-panel-container:focus-within {
   border-color: var(--accent-color);
   box-shadow: var(--accent-glow), var(--shadow-lg);
+  transform: translateY(-1px);
 }
 
 /* File Attachment Preview Banner */
